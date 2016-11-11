@@ -112,7 +112,7 @@ class CvMorph extends Canvas {
                             poly2Fin = true;
                         }
                     }
-                    if (!poly1Fin) posDetection(poly2, pt);
+                    if (!poly2Fin) posDetection(poly2, pt);
                 }
                 repaint();
             }
@@ -277,7 +277,6 @@ class CvMorph extends Canvas {
 
         int poly2Size = poly2.size();
         if (poly2Size == 0) return;
-        System.out.print("blu");
         g.setColor(Color.blue);
 
         a = (Point2D)(poly2.elementAt(0));
@@ -288,8 +287,8 @@ class CvMorph extends Canvas {
             g.drawLine(a.x, a.y, b.x, b.y);
             a = b;
         }
-        if (poly1Fin) {
-            Point2D b = (Point2D)(poly1.elementAt(0));
+        if (poly2Fin) {
+            Point2D b = (Point2D)(poly2.elementAt(0));
             g.drawLine(a.x, a.y, b.x, b.y);
         }
 
@@ -357,7 +356,6 @@ class CvMorph extends Canvas {
             bluePoint = (Point2D)(poly2.elementAt(index2));
 
             if (Math.abs(sine1 - sine2) < eps) {
-                System.out.println("Sine1 - Sine2 < eps");
                 // ✓ - 1. new reference point becomes: Blue[index2] OR Red[index1]
                 refPoint = redPoint;
                 // ✓ - 2. add (Red[index1], Blue[index2]) to list of
@@ -370,7 +368,6 @@ class CvMorph extends Canvas {
                 index2++;
             }
             else if (sine1 < sine2) {
-                System.out.println("Sine1 < Sine2");
                 // ✓ - firstPoint = Red[index1]
                 firstPoint = redPoint;
                 // secondPoint = Intersection of Line(origin, Red[index1])
@@ -389,7 +386,6 @@ class CvMorph extends Canvas {
                 index1++;
             }
             else if (sine1 > sine2) {
-                System.out.println("Sine1 > Sine2");
                 // ✓ - firstPoint = Blue[index2]
                 firstPoint = bluePoint;
 

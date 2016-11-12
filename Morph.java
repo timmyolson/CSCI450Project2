@@ -48,18 +48,21 @@ class CvMorph extends Canvas {
     Vector poly3 = new Vector();
 
     Point2D center      = new Point2D(0,0);
+    Point2D center2     = new Point2D(0,0);
     Point2D pt          = new Point2D(0,0);
     Point2DUnit u       = new Point2DUnit(0,0);
     Point2DUnit uM      = new Point2DUnit(0,0);
 
     // define the center of the star shaped poly.
     boolean centerDef  = false,
+    		center2Def = false,
             poly1Fin   = false,
             poly2Fin   = false,
             initialRef = false,
             StartP1    = false,
             StartP2    = false,
-            poly2Kick  = false;
+            poly2Kick  = false,
+			secondPolygonDone = false;
 
     int stage_counter = 0;
     int stages;
@@ -68,115 +71,57 @@ class CvMorph extends Canvas {
     CvMorph(int stages) {
 
         this.stages = stages;
+
         addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent evt) {
                 int xPoint = evt.getX();
                 int yPoint = evt.getY();
 
                 if (!centerDef) {
-                    center.x = 300;
-                    center.y = 300;
+                    center.x = xPoint;
+                    center.y = yPoint;
                     centerDef = true;
                 }
                 else if (!poly1Fin) {
-                    // Point2D pt = new Point2D(xPoint, yPoint);
-                    // if (poly1.size() > 0) {
-                    //     Point2D origPt = (Point2D)(poly1.elementAt(0));
-                    //     double xComp   = Math.pow(origPt.x - pt.x, 2);
-                    //     double yComp   = Math.pow(origPt.y - pt.y, 2);
-                    //     float  dist    = (float) Math.sqrt(xComp + yComp);
-                    //     if (dist < 16) {
-                    //         pt = origPt;
+                    pt = new Point2D(xPoint, yPoint);
+                    if (poly1.size() > 0) {
+                        Point2D origPt = (Point2D)(poly1.elementAt(0));
+                        double xComp   = Math.pow(origPt.x - pt.x, 2);
+                        double yComp   = Math.pow(origPt.y - pt.y, 2);
+                        float  dist    = (float) Math.sqrt(xComp + yComp);
+                        if (dist < 16) {
                             poly1Fin = true;
-                        // }
-                    // }
-                    // if (poly1.size() >= 1) {
-                    //     // Calculate unit vector of last point.
-                    //     Point2D lastPt = (Point2D)(poly1.lastElement());
-                    //     double xCompU   = Math.pow(lastPt.x - center.x, 2);
-                    //     double yCompU   = Math.pow(lastPt.y - center.y, 2);
-                    //     float  distU    = (float) Math.sqrt(xCompU + yCompU);
-                    //     u = new Point2DUnit((pt.x - center.x)/distU, (pt.y - center.y)/distU);
-                    //     // Calculate unit vector uM "unit Mouse" to mouse new point.
-                    //     double xCompUM   = Math.pow(pt.x - center.x, 2);
-                    //     double yCompUM   = Math.pow(pt.y - center.y, 2);
-                    //     float  distUM    = (float) Math.sqrt(xCompUM + yCompUM);
-                    //     uM = new Point2DUnit((xPoint - center.x)/distUM, (yPoint - center.y)/distUM);
-                    //
-                    //     // Find dot product and angle.
-                    //     float dotUandUM = (u.uX * uM.uX) + (u.uY * uM.uY);
-                    //     double cosUandUM = Math.acos(dotUandUM);
-                    //     // System.out.println("Unit vector check: " + u.uX + " " + u.uY);
-                    //     // System.out.println("Unit vector check: " + uM.uX + " " + uM.uY);
-                    //     // System.out.println("Theta: " + cosUandUM);
-                    // }
-
-                    Point2D pt = new Point2D(434,277);
-                    poly1.addElement(pt);
-                    pt = new Point2D(329,277);
-                    poly1.addElement(pt);
-                    pt = new Point2D(300,178);
-                    poly1.addElement(pt);
-                    pt = new Point2D(263,277);
-                    poly1.addElement(pt);
-                    pt = new Point2D(163,277);
-                    poly1.addElement(pt);
-                    pt = new Point2D(245,347);
-                    poly1.addElement(pt);
-                    pt = new Point2D(207,429);
-                    poly1.addElement(pt);
-                    pt = new Point2D(287,382);
-                    poly1.addElement(pt);
-                    pt = new Point2D(329,418);
-                    poly1.addElement(pt);
-                    pt = new Point2D(362,348);
-                    poly1.addElement(pt);
-                    // Point2D pt = new Point2D(345, 269);
-                    // poly1.addElement(pt);
-                    // pt = new Point2D(263, 208);
-                    // poly1.addElement(pt);
-                    // pt = new Point2D(147, 267);
-                    // poly1.addElement(pt);
-                    // pt = new Point2D(140, 388);
-                    // poly1.addElement(pt);
-                    // pt = new Point2D(250, 382);
-                    // poly1.addElement(pt);
-                    // pt = new Point2D(306, 347);
-                    // poly1.addElement(pt);
+                            poly2Kick = true;
+                        }
+                    }
+                    if (poly1.size() >= 1) {
+                        Point2D lastPt = (Point2D)(poly1.lastElement());
+                        double xCompU  = Math.pow(lastPt.x - center.x, 2);
+                        double yCompU  = Math.pow(lastPt.y - center.y, 2);
+                        float  distU   = (float) Math.sqrt(xCompU + yCompU);
+                        u = new Point2DUnit((pt.x - center.x)/distU, (pt.y - center.y)/distU);
+                    }
+                    if (!poly1Fin) posDetection(poly1, pt, center);
                 }
                 else if (!poly2Fin && poly1Fin) {
-                    // Point2D pt = new Point2D(xPoint, yPoint);
-                    // if (poly2.size() > 0) {
-                    //     Point2D origPt = (Point2D)(poly2.elementAt(0));
-                    //     double xComp   = Math.pow(origPt.x - pt.x, 2);
-                    //     double yComp   = Math.pow(origPt.y - pt.y, 2);
-                    //     double dist    = Math.sqrt(xComp + yComp);
-                    //     if (dist < 16) {
-                            poly2Fin = true;
-                    //     }
-                    // }
-                    Point2D pt = new Point2D(392,217);
-                    poly2.addElement(pt);
-                    pt = new Point2D(392,217);
-                    poly2.addElement(pt);
-                    pt = new Point2D(209,219);
-                    poly2.addElement(pt);
-                    pt = new Point2D(206,381);
-                    poly2.addElement(pt);
-                    pt = new Point2D(378,380);
-                    poly2.addElement(pt);
-                    // Point2D pt = new Point2D(367, 278);
-                    // poly2.addElement(pt);
-                    // pt = new Point2D(262, 264);
-                    // poly2.addElement(pt);
-                    // pt = new Point2D(267, 192);
-                    // poly2.addElement(pt);
-                    // pt = new Point2D(125, 259);
-                    // poly2.addElement(pt);
-                    // pt = new Point2D(105, 350);
-                    // poly2.addElement(pt);
-                    // pt = new Point2D(209, 359);
-                    // poly2.addElement(pt);
+                    if(!center2Def){
+                        center2.x = xPoint;
+                        center2.y = yPoint;
+                        center2Def = true;
+                    }
+                    else {
+                        pt = new Point2D(xPoint, yPoint);
+                        if (poly2.size() > 0) {
+                            Point2D origPt = (Point2D)(poly2.elementAt(0));
+                            double xComp   = Math.pow(origPt.x - pt.x, 2);
+                            double yComp   = Math.pow(origPt.y - pt.y, 2);
+                            double dist    = Math.sqrt(xComp + yComp);
+                            if (dist < 16) {
+                                poly2Fin = true;
+                            }
+                        }
+                        if (!poly2Fin) posDetection(poly2, pt, center2);
+                    }
                 }
                 else if (poly1Fin && poly2Fin) {
                     stage_counter++;
@@ -187,53 +132,6 @@ class CvMorph extends Canvas {
                 repaint();
             }
         });
-        // addMouseListener(new MouseAdapter() {
-		// 	public void mousePressed(MouseEvent evt) {
-        //         int xPoint = evt.getX();
-        //         int yPoint = evt.getY();
-        //
-        //         if (!centerDef) {
-        //             center.x = xPoint;
-        //             center.y = yPoint;
-        //             centerDef = true;
-        //         }
-        //         else if (!poly1Fin) {
-        //             pt = new Point2D(xPoint, yPoint);
-        //             if (poly1.size() > 0) {
-        //                 Point2D origPt = (Point2D)(poly1.elementAt(0));
-        //                 double xComp   = Math.pow(origPt.x - pt.x, 2);
-        //                 double yComp   = Math.pow(origPt.y - pt.y, 2);
-        //                 float  dist    = (float) Math.sqrt(xComp + yComp);
-        //                 if (dist < 16) {
-        //                     poly1Fin = true;
-        //                     poly2Kick = true;
-        //                 }
-        //             }
-        //             if (poly1.size() >= 1) {
-        //                 Point2D lastPt = (Point2D)(poly1.lastElement());
-        //                 double xCompU  = Math.pow(lastPt.x - center.x, 2);
-        //                 double yCompU  = Math.pow(lastPt.y - center.y, 2);
-        //                 float  distU   = (float) Math.sqrt(xCompU + yCompU);
-        //                 u = new Point2DUnit((pt.x - center.x)/distU, (pt.y - center.y)/distU);
-        //             }
-        //             if (!poly1Fin) posDetection(poly1, pt);
-        //         }
-        //         else if (!poly2Fin && poly1Fin) {
-        //             pt = new Point2D(xPoint, yPoint);
-        //             if (poly2.size() > 0) {
-        //                 Point2D origPt = (Point2D)(poly2.elementAt(0));
-        //                 double xComp   = Math.pow(origPt.x - pt.x, 2);
-        //                 double yComp   = Math.pow(origPt.y - pt.y, 2);
-        //                 double dist    = Math.sqrt(xComp + yComp);
-        //                 if (dist < 16) {
-        //                     poly2Fin = true;
-        //                 }
-        //             }
-        //             if (!poly2Fin) posDetection(poly2, pt);
-        //         }
-        //         repaint();
-        //     }
-        // });
     }
 
     //To calcuate the cross product
@@ -253,7 +151,7 @@ class CvMorph extends Canvas {
         return true;
     }
     //Detect which side the point is on and add the point to the vector
-    void posDetection(Vector poly, Point2D pt){
+    void posDetection(Vector poly, Point2D pt, Point2D center){
         if(!StartP1){
             poly.addElement(pt);
             StartP1 = true;
@@ -273,6 +171,78 @@ class CvMorph extends Canvas {
         }
     }
 
+    Vector sortPolyVertex(Vector Poly){
+
+    	Vector AngleArray = new Vector();
+    	Vector sortedPoly = new Vector();
+    	//This block will start executing after user draws the 2nd poly
+    	//and calculate the angle between each corresponding line
+    	if(poly2Fin){
+            for (int m = 0; m < Poly.size() - 1; m++){
+            	Point2D onePoint = (Point2D)Poly.elementAt(m);
+
+            	double theta = (center.y-onePoint.y)/(Math.sqrt((onePoint.x-center.x)*(onePoint.x-center.x)+(onePoint.y-center.y)*(onePoint.y-center.y)));
+            	int angle = (int)Math.toDegrees(theta);
+
+            	if(angle<0){
+            		angle = 360-Math.abs(angle);
+            	}
+            	AngleArray.add(m,angle);
+            	sortedPoly.add(m,onePoint);
+//            	System.out.println("Point " + m + " is " + AngleArray.get(m)+ " degrees");
+            	System.out.println("X " + onePoint.x + " Y " + onePoint.x + ": " + AngleArray.get(m)+ " degrees");
+            }
+        }
+    	System.out.println("");
+    	//This block will sort the points in the vector according to the angle
+	    for (int i = 0; i < AngleArray.size(); i++)
+	    {
+	        int index = i;
+	        for (int j = i + 1; j < AngleArray.size(); j++){
+	            if ((int)AngleArray.get(j) < (int)AngleArray.get(index)){
+	                index = j;
+	            }
+	        }
+	        Collections.swap(sortedPoly, i, index);
+//	        System.out.println("Point " + i + " is " + AngleArray.get(i)+ " degrees");
+	        Point2D pt = (Point2D) sortedPoly.elementAt(i);
+	        System.out.println("X " + pt.x + " Y " + pt.x);
+	    }
+	    System.out.println("");
+
+	    return sortedPoly;
+    }
+
+    public void drawGuides(Vector poly, Point2D c, boolean polyFin, Graphics g){
+        if (!polyFin) {
+            Point2D lastPt = (Point2D)(poly.lastElement());
+            double xCompU   = Math.pow(lastPt.x - c.x, 2);
+            double yCompU   = Math.pow(lastPt.y - c.y, 2);
+            float  distU    = (float) Math.sqrt(xCompU + yCompU);
+
+            Dimension d = getSize();
+            int width = d.width;
+            int height = d.height;
+
+            //To display direction message
+            boolean Direction = crossProd(c, lastPt, pt);
+            if(!Direction){
+                g.drawString("Can't draw in this region", width - 180, height - 20);
+            }
+
+            // find the unit vector connecting the origin and last mapped point.
+            u = new Point2DUnit((lastPt.x - c.x)/distU, (lastPt.y - c.y)/distU);
+            // System.out.println("Unit vector check: " + u.uX + " " + u.uY);
+            int scaleX = Math.round(1000 * u.uX);
+            int scaleY = Math.round(1000 * u.uY);
+
+            // Draw the lines.
+            g.setColor(Color.magenta);
+            g.drawLine(c.x, c.y, c.x + scaleX, c.y + scaleY);
+            g.drawLine(c.x, c.y, c.x - scaleX, c.y - scaleY);
+        } // End draw help
+    }
+
     public void paint(Graphics g) {
 
         // Establish center point of polygons.
@@ -289,6 +259,9 @@ class CvMorph extends Canvas {
             // g.drawLine(center.x, center.y, center.x - 1000, center.y);
             // g.drawLine(center.x, center.y, center.x, center.y + 1000);
             // g.drawLine(center.x, center.y, center.x, center.y - 1000);
+        }
+        if (center2Def) {
+            g.drawRect(center2.x - 2, center2.y - 2, 4, 4);
         }
 
         // Get the sie of the vector try to draw.
@@ -314,29 +287,7 @@ class CvMorph extends Canvas {
         }
 
         // Draw a line to guide the user on how to make a star polygon.
-        if (!poly1Fin) {
-            Point2D lastPt = (Point2D)(poly1.lastElement());
-            double xCompU   = Math.pow(lastPt.x - center.x, 2);
-            double yCompU   = Math.pow(lastPt.y - center.y, 2);
-            float  distU    = (float) Math.sqrt(xCompU + yCompU);
-
-            //To display direction message
-            boolean Direction = crossProd(center, lastPt, pt);
-            if(!Direction){
-                g.drawString("Can't draw in this region", 650, 750);
-            }
-
-            // find the unit vector connecting the origin and last mapped point.
-            u = new Point2DUnit((lastPt.x - center.x)/distU, (lastPt.y - center.y)/distU);
-            // System.out.println("Unit vector check: " + u.uX + " " + u.uY);
-            int scaleX = Math.round(1000 * u.uX);
-            int scaleY = Math.round(1000 * u.uY);
-
-            // Draw the lines.
-            g.setColor(Color.magenta);
-            g.drawLine(center.x, center.y, center.x + scaleX, center.y + scaleY);
-            g.drawLine(center.x, center.y, center.x - scaleX, center.y - scaleY);
-        } // End draw help
+        drawGuides(poly1, center, poly1Fin, g);
 
         int poly2Size = poly2.size();
         if (poly2Size == 0) return;
@@ -356,31 +307,26 @@ class CvMorph extends Canvas {
         }
 
         // Draw a line to guide the user on how to make a star polygon.
-        if (!poly2Fin) {
-            Point2D lastPt = (Point2D)(poly2.lastElement());
-            double xCompU   = Math.pow(lastPt.x - center.x, 2);
-            double yCompU   = Math.pow(lastPt.y - center.y, 2);
-            float  distU    = (float) Math.sqrt(xCompU + yCompU);
-
-            //To display direction message
-            boolean Direction = crossProd(center, lastPt, pt);
-            if(!Direction){
-                g.drawString("Can't draw in this region", 650,750);
-            }
-
-            // find the unit vector connecting the origin and last mapped point.
-            u = new Point2DUnit((lastPt.x - center.x)/distU, (lastPt.y - center.y)/distU);
-            // System.out.println("Unit vector check: " + u.uX + " " + u.uY);
-            int scaleX = Math.round(1000 * u.uX);
-            int scaleY = Math.round(1000 * u.uY);
-
-            // Draw the lines.
-            g.setColor(Color.magenta);
-            g.drawLine(center.x, center.y, center.x + scaleX, center.y + scaleY);
-            g.drawLine(center.x, center.y, center.x - scaleX, center.y - scaleY);
-        } // End draw help
+        drawGuides(poly2, center2, poly2Fin, g);
 
         if (poly2Fin && poly1Fin) {
+
+            Vector newPoly1 = new Vector();
+            Vector newPoly2 = new Vector();
+
+            newPoly1 = sortPolyVertex(poly1);
+            newPoly2 = sortPolyVertex(poly2);
+
+            for (int i = 0; i < poly2.size(); i++) {
+                Point2D p1 = (Point2D)(poly2.elementAt(i));
+                System.out.println("unst p1 - (" + p1.x + "," + p1.y + ")");
+            }
+
+            for (int i = 0; i < newPoly2.size(); i++) {
+                Point2D p1 = (Point2D)(newPoly2.elementAt(i));
+                System.out.println("sort p1 - (" + p1.x + "," + p1.y + ")");
+            }
+
             g.setColor(Color.magenta);
             CorPoints morph = new CorPoints(poly1, poly2, center, center);
 
